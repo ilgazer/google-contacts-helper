@@ -135,12 +135,12 @@ function People() {
     }
 
     async function getLabelOrCreateNew(label) {
-        return (await getLabelsStore())[label].resourceName ||
+        return ((await getLabelsStore())[label] ||
             ((await gapi.client.people.contactGroups.create({
                 "contactGroup": {
                     "name": label
                 }
-            })).result.resourceName);
+            })).result)).resourceName;
     }
 
     async function getContactsFromNameList(nameList) {
