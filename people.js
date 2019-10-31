@@ -113,7 +113,7 @@ function People() {
 
     async function getLabelsStore() {
         let contactStore = {};
-        console.log("getting contact store");
+        console.log("getting label store");
 
         let array = await getPage();
 
