@@ -158,7 +158,12 @@ function People() {
         });
     }
 
+    //Creates new label and then adds the naes in the list to it
     this.addPeopleFromNameList = (tag, nameList) =>
         Promise.all([getLabelOrCreateNew(tag), getContactsFromNameList(nameList)])
             .then(([label, contactList]) => addToLabelFromNameList(label, contactList));
+
+    this.addPersonToContacts = details => gapi.client.people.people.createContact(details);
+
+    this.addPeopleToContacts = people => people.forEach(this.addPersonToContacts);
 }
