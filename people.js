@@ -163,7 +163,12 @@ function People() {
         Promise.all([getLabelOrCreateNew(tag), getContactsFromNameList(nameList)])
             .then(([label, contactList]) => addToLabelFromNameList(label, contactList));
 
-    this.addPersonToContacts = details => gapi.client.people.people.createContact(details);
+    this.addPersonToContacts = details =>
+        gapi.client.people.people.createContact({
+            "names": details.names.map(name => ({"givenName": name})),
+            "phoneNumbers": details.phoneNumbers.map(number => ({"value": number})),
+            "emailAddresses": details.emailAddresses.map(email => ({"value": email}))
+        });
 
     this.addPeopleToContacts = people => people.forEach(this.addPersonToContacts);
 }
