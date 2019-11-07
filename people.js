@@ -134,37 +134,36 @@ function People() {
         }
     }
 
-    async function getLabelOrCreateNew(label) {
+    this.getLabelOrCreateNew = async function(label) {
         return ((await getLabelsStore())[label] ||
             ((await gapi.client.people.contactGroups.create({
                 "contactGroup": {
                     "name": label
                 }
             })).result)).resourceName;
-    }
+    };
 
-    async function getContactsFromNameList(nameList) {
+    this.getContactsFromNameList = async function(nameList) {
         let contacts = await getContactStore();
         return nameList
             .map(name => contacts[name])
             .filter(name => name)
             .map(contact => contact.resourceName);
-    }
+    };
 
-    async function addToLabelFromNameList(labelId, contactList) {
-        await gapi.client.people.contactGroups.members.modify({
+    this.addToLabelFromContactList = function(labelId, contactList) {
+        return gapi.client.people.contactGroups.members.modify({
             resourceName: labelId,
             resourceNamesToAdd: contactList
         });
-    }
+    };
 
-    //Creates new label and then adds the naes in the list to it
+    //Creates new label and then adds the names in the list to it
     this.addPeopleFromNameList = (tag, nameList) =>
-        Promise.all([getLabelOrCreateNew(tag), getContactsFromNameList(nameList)])
-            .then(([label, contactList]) => addToLabelFromNameList(label, contactList));
+        Promise.all([this.getLabelOrCreateNew(tag), this.getContactsFromNameList(nameList)])
+            .then(([label, contactList]) => this.addToLabelFromContactList(label, contactList));
 
     this.addPersonToContacts = details =>{
-        console.log(details);
         return gapi.client.people.people.createContact({
             "names": details.names.map(name => ({"givenName": name})),
             "phoneNumbers": details.phoneNumbers.map(number => ({"value": number})),
