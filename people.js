@@ -171,5 +171,5 @@ function People() {
             "emailAddresses": details.emailAddresses.map(email => ({"value": email}))
         })};
 
-    this.addPeopleToContacts = people => Promise.all(people.forEach(this.addPersonToContacts));
+    this.addPeopleToContacts = people => Promise.all(people.map(this.addPersonToContacts));
 }
