@@ -134,7 +134,7 @@ function People() {
         }
     }
 
-    this.getLabelOrCreateNew = async function(label) {
+    this.getLabelOrCreateNew = async function (label) {
         return ((await getLabelsStore())[label] ||
             ((await gapi.client.people.contactGroups.create({
                 "contactGroup": {
@@ -143,7 +143,7 @@ function People() {
             })).result)).resourceName;
     };
 
-    this.getContactsFromNameList = async function(nameList) {
+    this.getContactsFromNameList = async function (nameList) {
         let contacts = await getContactStore();
         return nameList
             .map(name => contacts[name])
@@ -151,7 +151,7 @@ function People() {
             .map(contact => contact.resourceName);
     };
 
-    this.addToLabelFromContactList = function(labelId, contactList) {
+    this.addToLabelFromContactList = function (labelId, contactList) {
         return gapi.client.people.contactGroups.members.modify({
             resourceName: labelId,
             resourceNamesToAdd: contactList
@@ -163,12 +163,19 @@ function People() {
         Promise.all([this.getLabelOrCreateNew(tag), this.getContactsFromNameList(nameList)])
             .then(([label, contactList]) => this.addToLabelFromContactList(label, contactList));
 
-    this.addPersonToContacts = details =>{
+    this.addPersonToContacts = details => {
         return gapi.client.people.people.createContact({
             "names": details.names.map(name => ({"givenName": name})),
             "phoneNumbers": details.phoneNumbers.map(number => ({"value": number})),
-            "emailAddresses": details.emailAddresses.map(email => ({"value": email}))
-        })};
+            "emailAddresses": details.emailAddresses.map(email => ({"value": email})),
+            "memberships": details.labels.map(label => ({
+                    "contactGroupMembership": {
+                        "contactGroupResourceName": label
+                    }
+                })
+            )
+        })
+    };
 
     this.addPeopleToContacts = people => Promise.all(people.map(this.addPersonToContacts));
 }
