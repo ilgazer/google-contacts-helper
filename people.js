@@ -111,14 +111,14 @@ function People() {
 
     }
 
-    async function getLabelsStore() {
-        let contactStore = {};
+    this.getAllLabels = async function () {
+        let labelStore = {};
         console.log("getting label store");
 
         let array = await getPage();
 
-        array.forEach(label => contactStore[label.name] = label);
-        return contactStore;
+        array.forEach(label => labelStore[label.name] = label);
+        return labelStore;
 
         async function getPage(pageToken = "") {
             let response = await gapi.client.people.contactGroups.list({
@@ -132,10 +132,10 @@ function People() {
             }
             return response.result.contactGroups;
         }
-    }
+    };
 
     this.getLabelOrCreateNew = async function (label) {
-        return ((await getLabelsStore())[label] ||
+        return ((await this.getAllLabels())[label] ||
             ((await gapi.client.people.contactGroups.create({
                 "contactGroup": {
                     "name": label
@@ -178,4 +178,5 @@ function People() {
     };
 
     this.addPeopleToContacts = people => Promise.all(people.map(this.addPersonToContacts));
+
 }
