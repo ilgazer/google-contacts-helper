@@ -55,9 +55,7 @@ function People() {
     }
 
     function updateSigninStatus(isSignedIn) {
-        if (isSignedIn) {
-            makeApiCall();
-        } else {
+        if (!isSignedIn) {
             signIn();
         }
     }
@@ -70,13 +68,6 @@ function People() {
         gapi.auth2.getAuthInstance().signOut();
     }
 
-// Load the API and make an API call.  Display the results on the screen.
-    async function makeApiCall() {
-        console.log(await getContactStore());
-        console.log(await getLabelOrCreateNew("12F"));
-        console.log(await getLabelOrCreateNew("13F"))
-    }
-
     function getPersonNameOrAccountId(person) {
         if (person.names && person.names.length > 0) {
             return person.names[0].displayName;
@@ -87,7 +78,6 @@ function People() {
 
     async function getContactStore() {
         let contactStore = {};
-        console.log("getting contact store");
 
         let array = await getPage();
 
@@ -100,10 +90,8 @@ function People() {
                 'personFields': 'names,emailAddresses',
                 'pageToken': pageToken
             });
-            console.log(response);
             if (response.result.nextPageToken) {
                 const nextPage = await getPage(response.result.nextPageToken);
-                console.log(nextPage);
                 return response.result.connections.concat(nextPage)
             }
             return response.result.connections;
@@ -113,7 +101,6 @@ function People() {
 
     this.getAllLabels = async function () {
         let labelStore = {};
-        console.log("getting label store");
 
         let array = await getPage();
 
@@ -124,15 +111,38 @@ function People() {
             let response = await gapi.client.people.contactGroups.list({
                 'pageToken': pageToken
             });
-            console.log(response);
             if (response.result.nextPageToken) {
                 const nextPage = await getPage(response.result.nextPageToken);
-                console.log(nextPage);
                 return response.result.contactGroups.concat(nextPage)
             }
             return response.result.contactGroups;
         }
     };
+
+    this.getLabelFromResourceName = async function (resourceName) {
+        let {result} = await gapi.client.people.contactGroups.get({
+            "resourceName": resourceName,
+            "maxMembers": 65531
+        });
+        return {
+            resourceName: resourceName,
+            name: result.name,
+            members: await Promise.all(result.memberResourceNames.map(this.getPersonFromResourceName))
+        }
+    };
+
+    this.getPersonFromResourceName = async function (resourceName) {
+        const {result} = await gapi.client.people.people.get({
+            "resourceName": resourceName,
+            "personFields": "names,phoneNumbers"
+        });
+        return {
+            name: result.names[0].displayName,
+            resourceName: resourceName,
+            phoneNumbers: (result.phoneNumbers || []).map(number => number.value)
+        }
+    };
+    ;
 
     this.getLabelOrCreateNew = async function (label) {
         return ((await this.getAllLabels())[label] ||
